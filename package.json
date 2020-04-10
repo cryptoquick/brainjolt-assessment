@@ -1,0 +1,22 @@
+{
+  "name": "brainjolt-assessment",
+  "author": "Hunter Trujillo <hunter@cryptoquick.com>",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cryptoquick/brainjolt-assessment.git"
+  },
+  "private": true,
+  "scripts": {
+    "start": "concurrently npm:proxy npm:serve npm:open",
+    "proxy": "lcp --proxyUrl http://twentytwowords.com --proxyPartial '' --port 4000",
+    "serve": "ws -p 3000",
+    "open": "wait-on tcp:4000 tcp:3000 && open http://0.0.0.0:3000"
+  },
+  "devDependencies": {
+    "concurrently": "^5.1.0",
+    "local-cors-proxy": "^1.1.0",
+    "local-web-server": "^4.0.0",
+    "wait-on": "^4.0.2"
+  }
+}
