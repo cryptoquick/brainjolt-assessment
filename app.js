@@ -5,10 +5,8 @@ import {
 } from 'https://unpkg.com/preact@latest/hooks/dist/hooks.module.js?module'
 
 // constants
-const PROXY = 'http://0.0.0.0:4000'
-const PATH =
-  'weird-pictures-that-will-make-you-giggle-despite-your-best-intentions/'
-const MAX = 5
+const HOST = 'http://0.0.0.0:3000'
+const PATH = 'data.json'
 
 // styles classes
 const styles = {
@@ -45,7 +43,7 @@ const PRPRM = (len, seed) => {
     t++
     let i = Math.floor(prng(t) * order.length)
     seq.push(order[i])
-    order.splice(i, 1)
+    order.splice(i, 1) // not ideal, prefer balanced tree for scalability
   }
 
   return seq
@@ -121,30 +119,16 @@ const Slide = ({ index, images, captions, setIndex }) =>
 // async ops
 const fetchSlides = async (setImages, setCaptions) => {
   try {
-    const res = await fetch(join('/', PROXY, PATH))
+    const res = await fetch(join('/', HOST, PATH))
 
     if (res.status !== 200) {
       throw new Error('Error fetching images:', res.statusText)
     }
 
-    const html = await res.text()
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(html, 'text/html')
+    const { images, captions } = await res.json()
 
-    const imgs = [
-      ...doc.querySelectorAll('.gallery-item img.load-image'),
-    ].slice(0, MAX)
-    const images = imgs.map((img) => img.src)
     setImages(images)
-
-    const els = [...doc.querySelectorAll('.gallery-item .slide-title')].slice(
-      1, // fix off-by-one caption order.
-      MAX + 1,
-    )
-    const captions = els.map((el) => el.innerText)
     setCaptions(captions)
-
-    console.log(captions, images)
 
     return images.length
   } catch (err) {
@@ -166,26 +150,23 @@ const SlideSlideshow = () => {
   const [captions, setCaptions] = useState([])
   const [sequence, setSequence] = useState([])
   const [run, setRun] = useState(0)
+  const [max, setMax] = useState(-1)
 
   useEffect(async () => {
     const length = await fetchSlides(setImages, setCaptions)
+    setMax(length)
     setSequence(PRPRM(length, run))
   }, [])
 
-  if (index === MAX) {
+  if (index === max) {
     setIndex(0)
-    setRun(run + 1)
-    setSequence(PRPRM(images.length, run))
+    const newSeq = run + 1
+    setRun(newSeq)
+    setSequence(PRPRM(images.length, newSeq))
+    console.info('restarted, with sequence', newSeq)
   }
 
-  console.log('1')
-
   useEffect(() => {
-    console.log('3')
-    console.log(images.length)
-    console.log(captions.length)
-    console.log(sequence.length)
-
     if (
       images.length > 0 &&
       captions.length > 0 &&
@@ -201,7 +182,6 @@ const SlideSlideshow = () => {
       console.debug('sequence', sequence)
     }
   }, [images.length, captions.length, sequence.length])
-  console.log('2')
 
   return h(
     'div',
