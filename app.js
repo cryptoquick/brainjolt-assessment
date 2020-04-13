@@ -92,7 +92,7 @@ const Loader = () =>
     h('progress'),
   )
 
-const Slide = ({ index, images, captions, setIndex }) =>
+const Slide = ({ index, images, captions, sequence, setIndex }) =>
   h(
     'figure',
     {},
@@ -101,11 +101,11 @@ const Slide = ({ index, images, captions, setIndex }) =>
       {
         class: join(' ', styles.font.playfair, styles.caption),
       },
-      captions[index],
+      captions[sequence[index]],
     ),
     h('div', {
       class: styles.image,
-      style: `background-image: url('${images[index]}')`,
+      style: `background-image: url('${images[sequence[index]]}')`,
     }),
     h(
       'button',
@@ -187,7 +187,7 @@ const SlideSlideshow = () => {
     'div',
     { class: styles.component },
     loaded
-      ? h(Slide, { index: sequence[index], images, captions, setIndex })
+      ? h(Slide, { index, images, captions, sequence, setIndex })
       : h(Loader),
   )
 }
